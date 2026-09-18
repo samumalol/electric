@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Ride Range</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Helvetica,
+        Arial,
+        sans-serif;
+
+      background: #f5f5f3;
+      color: #111;
+      overflow-x: hidden;
+    }
+
+    body.selection-mode {
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+
+    .site-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 84px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 0 56px;
+
+      z-index: 50;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 34px;
+      font-size: 14px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #555;
+      transition: color 0.2s ease;
+    }
+
+    .nav a:hover {
+      color: #111;
+    }
+
+    .hero {
+      width: 100%;
+      height: 100vh;
+      min-height: 720px;
+
+      position: relative;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      width: min(1180px, calc(100% - 110px));
+      height: 100%;
+
+      display: grid;
+      grid-template-rows:
+        150px
+        1fr
+        190px;
+
+      align-items: center;
+    }
+
+    .hero-copy {
+      text-align: center;
+      align-self: end;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+
+      color: #777;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-size: clamp(34px, 4vw, 56px);
+      font-weight: 600;
+      letter-spacing: -0.045em;
+      line-height: 1;
+    }
+
+    .hero-subtitle {
+      margin-top: 15px;
+
+      font-size: 17px;
+      color: #6b6b6b;
+    }
+
+    .vehicle-stage {
+      position: relative;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      width: 100%;
+      height: 100%;
+    }
+
+    .vehicle-display {
+      width: min(900px, 78vw);
+      height: 560px;
+
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+
+      perspective: 1300px;
+    }
+
+    .vehicle-image-wrap {
+      width: 100%;
+      height: 430px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      position: relative;
+    }
+
+    .vehicle-image {
+      max-width: 130%;
+      max-height: 500px;
+
+      object-fit: contain;
+    }
+
+    .vehicle-caption {
+      position: absolute;
+      bottom: 65px;
+
+      left: 50%;
+      transform: translateX(-50%);
+
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .pagination {
+      position: absolute;
+      bottom: 20px;
+
+      left: 50%;
+      transform: translateX(-50%);
+
+      display: flex;
+      gap: 8px;
+    }
+
+    .image-placeholder {
+      position: absolute;
+
+      width: 520px;
+      height: 220px;
+
+      border-radius: 110px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #e1e1df,
+          #fafafa
+        );
+
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,0.05),
+        0 25px 50px rgba(0,0,0,0.07);
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      text-align: center;
+
+      color: #777;
+      font-size: 14px;
+
+      padding: 25px;
+    }
+
+    .image-placeholder strong {
+      display: block;
+      color: #333;
+      margin-bottom: 7px;
+    }
+
+    .vehicle-arrow {
+      position: absolute;
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      width: 58px;
+      height: 58px;
+
+      border-radius: 50%;
+
+      display: grid;
+      place-items: center;
+
+      background: rgba(255,255,255,0.72);
+
+      border:
+        1px solid rgba(0,0,0,0.06);
+
+      backdrop-filter: blur(18px);
+
+      font-size: 28px;
+      font-weight: 300;
+
+      transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .vehicle-arrow:hover {
+      background: white;
+      transform:
+        translateY(-50%)
+        scale(1.06);
+    }
+
+    .vehicle-arrow.left {
+      left: 4%;
+    }
+
+    .vehicle-arrow.right {
+      right: 4%;
+    }
+
+    .vehicle-caption {
+       position: absolute;
+
+      bottom: 55px;
+
+      left: 50%;
+      transform: translateX(-50%);
+
+      text-align: center;
+      white-space: nowrap;
+
+      z-index: 5;
+    }
+
+    .vehicle-name {
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .vehicle-type {
+      font-size: 13px;
+
+      color: #888;
+
+      margin-top: 5px;
+    }
+
+    .pagination {
+      position: absolute;
+
+      bottom: 15px;
+
+      display: flex;
+      gap: 8px;
+
+      left: 50%;
+      transform: translateX(-50%); 
+    }
+
+    .pagination-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background: #c5c5c5;
+
+      transition:
+        width 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .pagination-dot.active {
+      width: 22px;
+
+      border-radius: 12px;
+
+      background: #222;
+    }
+
+    .distance-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      align-self: start;
+
+      transition:
+        opacity 0.45s ease,
+        transform 0.45s ease;
+    }
+
+    .distance-area.hidden {
+      pointer-events: none;
+
+      opacity: 0;
+
+      transform: translateY(20px);
+    }
+
+    .distance-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      padding: 10px 10px 10px 24px;
+
+      border-radius: 999px;
+
+      background: white;
+
+      box-shadow:
+        0 10px 35px rgba(0,0,0,0.07);
+
+      border:
+        1px solid rgba(0,0,0,0.04);
+    }
+
+    .distance-label {
+      font-size: 14px;
+
+      color: #707070;
+
+      margin-right: 6px;
+    }
+
+    .distance-input {
+      width: 72px;
+
+      border: none;
+      outline: none;
+
+      background: transparent;
+
+      text-align: right;
+
+      font-size: 19px;
+      font-weight: 600;
+
+      color: #111;
+    }
+
+    .distance-unit {
+      font-size: 14px;
+      color: #777;
+
+      margin-right: 12px;
+    }
+
+    .compare-button {
+      height: 48px;
+
+      padding: 0 26px;
+
+      border-radius: 999px;
+
+      background: #111;
+      color: white;
+
+      font-weight: 500;
+
+      transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .compare-button:hover {
+      background: #333;
+
+      transform: scale(1.025);
+    }
+
+    body.results-active .vehicle-image-wrap {
+      transform:
+        translateX(-235px)
+        translateY(5px)
+        rotateY(-10deg)
+        scale(0.83);
+    }
+
+    body.results-active .vehicle-caption {
+      opacity: 0;
+
+      transform:
+        translateX(-50%)
+        translateY(10px);
+    }
+
+    body.results-active .vehicle-arrow,
+    body.results-active .pagination {
+      opacity: 0;
+
+      pointer-events: none;
+    }
+
+    .hero-result {
+      position: absolute;
+
+      width: 420px;
+
+      left: calc(50% + 120px);
+      top: 50%;
+
+      transform:
+        translateY(-40%)
+        translateX(35px);
+
+      opacity: 0;
+
+      pointer-events: none;
+
+      transition:
+        opacity 0.65s ease 0.35s,
+        transform 0.65s cubic-bezier(.2,.75,.2,1) 0.35s;
+    }
+
+    body.results-active .hero-result {
+      opacity: 1;
+
+      pointer-events: auto;
+
+      transform:
+        translateY(-40%)
+        translateX(0);
+    }
+
+    .result-name {
+      font-size: 36px;
+
+      font-weight: 600;
+
+      letter-spacing: -0.04em;
+
+      margin-bottom: 26px;
+    }
+
+    .result-time {
+      font-size: 20px;
+
+      color: #555;
+
+      margin-bottom: 30px;
+    }
+
+    .battery-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+
+      margin-bottom: 10px;
+
+      font-size: 14px;
+    }
+
+    .battery-label {
+      color: #777;
+    }
+
+    .battery-percentage {
+      font-weight: 600;
+    }
+
+    .battery-track {
+      width: 100%;
+      height: 8px;
+
+      background: #dfdfdd;
+
+      border-radius: 99px;
+
+      overflow: hidden;
+
+      margin-bottom: 20px;
+    }
+
+    .battery-fill {
+      height: 100%;
+      width: 0%;
+
+      border-radius: inherit;
+
+      background: #111;
+
+      transition:
+        width 1.05s
+        cubic-bezier(.2,.75,.2,1)
+        0.5s;
+    }
+
+    .range-status {
+      font-size: 17px;
+      font-weight: 600;
+
+      margin-bottom: 7px;
+    }
+
+    .range-remaining {
+      font-size: 15px;
+
+      color: #6a6a6a;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+
+      bottom: 28px;
+
+      left: 50%;
+      transform: translateX(-50%);
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      gap: 8px;
+
+      font-size: 12px;
+      color: #888;
+
+      opacity: 0;
+
+      transition: opacity 0.5s ease 1s;
+    }
+
+    body.results-active .scroll-indicator {
+      opacity: 1;
+    }
+
+    .scroll-chevron {
+      font-size: 20px;
+
+      animation:
+        bounce
+        1.7s
+        ease-in-out
+        infinite;
+    }
+
+    @keyframes bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(5px);
+      }
+    }
+
+    .alternatives {
+      min-height: 100vh;
+
+      padding:
+        120px
+        60px
+        140px;
+
+      background: #fff;
+    }
+
+    .alternatives-inner {
+      width: min(1120px, 100%);
+
+      margin: 0 auto;
+    }
+
+    .alternatives-eyebrow {
+      font-size: 13px;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.08em;
+
+      color: #888;
+
+      margin-bottom: 10px;
+    }
+
+    .alternatives-title {
+      font-size: 46px;
+
+      font-weight: 600;
+
+      letter-spacing: -0.045em;
+
+      margin-bottom: 15px;
+    }
+
+    .alternatives-subtitle {
+      width: min(540px, 100%);
+
+      font-size: 17px;
+
+      line-height: 1.5;
+
+      color: #717171;
+
+      margin-bottom: 70px;
+    }
+
+    .vehicle-results {
+      display: flex;
+      flex-direction: column;
+
+      gap: 14px;
+    }
+
+    .result-card {
+      min-height: 190px;
+
+      display: grid;
+
+      grid-template-columns:
+        280px
+        1fr
+        190px;
+
+      align-items: center;
+
+      gap: 34px;
+
+      padding: 30px 38px;
+
+      border-radius: 28px;
+
+      background: #f5f5f3;
+
+      transition:
+        transform 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+    }
+
+    .result-card:hover {
+      background: #f8f8f7;
+
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 16px 50px rgba(0,0,0,0.05);
+    }
+
+    .result-card-image-wrap {
+      height: 130px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-card-image {
+      max-width: 100%;
+      max-height: 125px;
+
+      object-fit: contain;
+
+      filter:
+        drop-shadow(
+          0 18px 22px rgba(0,0,0,0.09)
+        );
+    }
+
+    .card-title {
+      font-size: 24px;
+
+      font-weight: 600;
+
+      letter-spacing: -0.03em;
+
+      margin-bottom: 9px;
+    }
+
+    .card-meta {
+      font-size: 14px;
+
+      color: #777;
+
+      margin-bottom: 18px;
+    }
+
+    .card-status {
+      font-size: 15px;
+
+      font-weight: 500;
+    }
+
+    .card-status.warning {
+      color: #9b5a00;
+    }
+
+    .card-status.unavailable {
+      color: #a11;
+    }
+
+    .card-data {
+      text-align: right;
+    }
+
+    .card-percent {
+      font-size: 34px;
+
+      font-weight: 600;
+
+      letter-spacing: -0.04em;
+    }
+
+    .card-percent-label {
+      margin-top: 4px;
+
+      color: #777;
+
+      font-size: 13px;
+    }
+
+    .card-remaining {
+      margin-top: 18px;
+
+      color: #555;
+
+      font-size: 14px;
+    }
+
+    .start-over {
+      margin-top: 70px;
+
+      display: inline-flex;
+      align-items: center;
+
+      height: 48px;
+
+      padding: 0 22px;
+
+      border-radius: 999px;
+
+      background: #111;
+      color: white;
+
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+
+      .site-header {
+        padding: 0 25px;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .hero-inner {
+        width: calc(100% - 30px);
+      }
+
+      .vehicle-arrow.left {
+        left: 0;
+      }
+
+      .vehicle-arrow.right {
+        right: 0;
+      }
+
+      body.results-active .vehicle-image-wrap {
+        transform:
+          translateY(-120px)
+          scale(0.65);
+      }
+
+      .hero-result {
+        left: 50%;
+
+        width: calc(100% - 70px);
+
+        top: 63%;
+
+        transform:
+          translateX(-50%)
+          translateY(30px);
+      }
+
+      body.results-active .hero-result {
+        transform:
+          translateX(-50%)
+          translateY(0);
+      }
+
+      .result-card {
+        grid-template-columns: 1fr;
+
+        text-align: center;
+      }
+
+      .card-data {
+        text-align: center;
+      }
+
+      .alternatives {
+        padding-left: 25px;
+        padding-right: 25px;
+      }
+    }
+
+  </style>
+</head>
+
+
+<body class="selection-mode">
+
+
+  <header class="site-header">
+
+    <div class="logo">
+      RideRange
+    </div>
+
+    <nav class="nav">
+      <a href="#alternatives">Vehicles</a>
+      <a href="#">How it works</a>
+      <a href="#">About</a>
+    </nav>
+
+  </header>
+
+
+
+  <main>
+
+    <section class="hero" id="hero">
+
+      <div class="hero-inner">
+
+
+        <div class="hero-copy">
+
+          <div class="eyebrow">
+            Personal electric mobility
+          </div>
+
+          <h1 class="hero-title">
+            How far are you going?
+          </h1>
+
+          <p class="hero-subtitle">
+            Choose a ride and see if it can make the trip.
+          </p>
+
+        </div>
+
+
+
+        <div class="vehicle-stage">
+
+          <button
+            class="vehicle-arrow left"
+            id="previousVehicle"
+            aria-label="Previous vehicle"
+          >
+            ‹
+          </button>
+
+
+          <div class="vehicle-display">
+
+            <div
+              class="vehicle-image-wrap"
+              id="vehicleImageWrap"
+            >
+
+              <img
+                class="vehicle-image"
+                id="vehicleImage"
+                src=""
+                alt=""
+              />
+
+
+              <div
+                class="image-placeholder"
+                id="imagePlaceholder"
+              >
+
+                <div>
+
+                  <strong id="placeholderName">
+                    Vehicle
+                  </strong>
+
+                  Add the PNG file to the images folder.
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="vehicle-caption">
+
+              <div
+                class="vehicle-name"
+                id="vehicleName"
+              >
+              </div>
+
+              <div
+                class="vehicle-type"
+                id="vehicleType"
+              >
+              </div>
+
+            </div>
+
+
+            <div
+              class="pagination"
+              id="pagination"
+            >
+            </div>
+
+          </div>
+
+
+          <button
+            class="vehicle-arrow right"
+            id="nextVehicle"
+            aria-label="Next vehicle"
+          >
+            ›
+          </button>
+
+
+        </div>
+
+
+
+        <div
+          class="distance-area"
+          id="distanceArea"
+        >
+
+          <div class="distance-card">
+
+            <span class="distance-label">
+              Trip distance
+            </span>
+
+            <input
+              class="distance-input"
+              id="distanceInput"
+              type="number"
+              value="5"
+              min="0.1"
+              step="0.1"
+            />
+
+            <span class="distance-unit">
+              mi
+            </span>
+
+            <button
+              class="compare-button"
+              id="compareButton"
+            >
+              Compare Range
+            </button>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+
+
+      <aside
+        class="hero-result"
+        id="heroResult"
+      >
+
+        <h2
+          class="result-name"
+          id="resultName"
+        >
+        </h2>
+
+
+        <div
+          class="result-time"
+          id="resultTime"
+        >
+        </div>
+
+
+        <div class="battery-row">
+
+          <span class="battery-label">
+            Estimated battery use
+          </span>
+
+          <span
+            class="battery-percentage"
+            id="batteryPercentage"
+          >
+          </span>
+
+        </div>
+
+
+        <div class="battery-track">
+
+          <div
+            class="battery-fill"
+            id="batteryFill"
+          >
+          </div>
+
+        </div>
+
+
+        <div
+          class="range-status"
+          id="rangeStatus"
+        >
+        </div>
+
+        <div
+          class="range-remaining"
+          id="rangeRemaining"
+        >
+        </div>
+
+      </aside>
+
+
+
+      <div class="scroll-indicator">
+
+        <span>
+          Explore alternatives
+        </span>
+
+        <span class="scroll-chevron">
+          ↓
+        </span>
+
+      </div>
+
+    </section>
+
+
+
+    <section
+      class="alternatives"
+      id="alternatives"
+    >
+
+      <div class="alternatives-inner">
+
+
+        <div class="alternatives-eyebrow">
+          Compare
+        </div>
+
+
+        <h2 class="alternatives-title">
+          Other ways to get there.
+        </h2>
+
+
+        <p class="alternatives-subtitle">
+
+          Compare battery use, estimated travel time and
+          remaining range for the same trip.
+
+        </p>
+
+
+        <div
+          class="vehicle-results"
+          id="vehicleResults"
+        >
+        </div>
+
+
+        <button
+          class="start-over"
+          id="startOverButton"
+        >
+          Start over
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <script>
+
+    const vehicles = [
+
+      {
+        id: "walking",
+
+        name: "Walking",
+
+        type: "No vehicle",
+
+        speed: 3,
+
+        profile:
+          "images/walking-profile.png",
+
+        axon:
+          "images/walking-axon.png",
+
+        isWalking: true
+      },
+
+
+      {
+        id: "onewheel",
+
+        name: "Onewheel GT",
+
+        type: "Electric board",
+
+        range: 32,
+
+        speed: 18,
+
+        profile:
+          "images/onewheel-profile.png",
+
+        axon:
+          "images/onewheel-axon.png"
+      },
+
+
+      {
+        id: "evolve",
+
+        name: "Evolve Bamboo GTR 2-in-1",
+
+        type: "Electric skateboard",
+
+        range: 31,
+
+        speed: 22,
+
+        profile:
+          "images/evolve-profile.png",
+
+        axon:
+          "images/evolve-axon.png"
+      },
+
+
+      {
+        id: "unagi",
+
+        name: "Unagi Model One E500",
+
+        type: "Electric scooter",
+
+        range: 15.5,
+
+        speed: 17,
+
+        profile:
+          "images/unagi-profile.png",
+
+        axon:
+          "images/unagi-axon.png"
+      },
+
+
+      {
+        id: "razor",
+
+        name: "Razor E Prime III",
+
+        type: "Electric scooter",
+
+        range: 15,
+
+        speed: 16,
+
+        profile:
+          "images/razor-profile.png",
+
+        axon:
+          "images/razor-axon.png"
+      },
+
+
+      {
+        id: "mototec",
+
+        name: "MotoTec Electric Skateboard",
+
+        type: "Electric skateboard",
+
+        range: 10,
+
+        speed: 20,
+
+        profile:
+          "images/mototec-profile.png",
+
+        axon:
+          "images/mototec-axon.png"
+      },
+
+
+      {
+        id: "ninebot",
+
+        name: "Segway Ninebot S2",
+
+        type: "Self-balancing transporter",
+
+        range: 21.7,
+
+        speed: 12,
+
+        profile:
+          "images/ninebot-profile.png",
+
+        axon:
+          "images/ninebot-axon.png"
+      },
+
+
+      {
+        id: "inmotion",
+
+        name: "Inmotion V8S",
+
+        type: "Electric unicycle",
+
+        range: 47,
+
+        speed: 21.7,
+
+        profile:
+          "images/inmotion-profile.png",
+
+        axon:
+          "images/inmotion-axon.png"
+      }
+
+    ];
+
+
+
+    let currentVehicleIndex = 0;
+
+    let resultsAreActive = false;
+
+
+
+    const vehicleImage =
+      document.getElementById("vehicleImage");
+
+    const vehicleName =
+      document.getElementById("vehicleName");
+
+    const vehicleType =
+      document.getElementById("vehicleType");
+
+    const previousVehicle =
+      document.getElementById("previousVehicle");
+
+    const nextVehicle =
+      document.getElementById("nextVehicle");
+
+    const pagination =
+      document.getElementById("pagination");
+
+    const distanceInput =
+      document.getElementById("distanceInput");
+
+    const compareButton =
+      document.getElementById("compareButton");
+
+    const distanceArea =
+      document.getElementById("distanceArea");
+
+    const imagePlaceholder =
+      document.getElementById("imagePlaceholder");
+
+    const placeholderName =
+      document.getElementById("placeholderName");
+
+    const resultName =
+      document.getElementById("resultName");
+
+    const resultTime =
+      document.getElementById("resultTime");
+
+    const batteryPercentage =
+      document.getElementById("batteryPercentage");
+
+    const batteryFill =
+      document.getElementById("batteryFill");
+
+    const rangeStatus =
+      document.getElementById("rangeStatus");
+
+    const rangeRemaining =
+      document.getElementById("rangeRemaining");
+
+    const vehicleResults =
+      document.getElementById("vehicleResults");
+
+    const startOverButton =
+      document.getElementById("startOverButton");
+
+
+
+    buildPagination();
+
+    showVehicle();
+
+
+
+    function buildPagination() {
+
+      pagination.innerHTML = "";
+
+      vehicles.forEach(
+        (vehicle, index) => {
+
+          const dot =
+            document.createElement("button");
+
+          dot.classList.add(
+            "pagination-dot"
+          );
+
+          if (
+            index ===
+            currentVehicleIndex
+          ) {
+
+            dot.classList.add("active");
+
+          }
+
+          dot.addEventListener(
+            "click",
+            () => {
+
+              if (
+                resultsAreActive
+              ) {
+                return;
+              }
+
+              currentVehicleIndex =
+                index;
+
+              showVehicle();
+
+            }
+          );
+
+          pagination.appendChild(dot);
+
+        }
+      );
+
+    }
+
+
+
+    function showVehicle() {
+
+      const vehicle =
+        vehicles[currentVehicleIndex];
+
+
+      vehicleName.textContent =
+        vehicle.name;
+
+      vehicleType.textContent =
+        vehicle.type;
+
+      placeholderName.textContent =
+        vehicle.name;
+
+
+      showImage(
+        vehicle.profile,
+        vehicle.name
+      );
+
+
+      updatePagination();
+
+    }
+
+
+
+    function showImage(src, alt) {
+
+      imagePlaceholder.style.display =
+        "none";
+
+      vehicleImage.style.display =
+        "block";
+
+      vehicleImage.style.opacity =
+        "0";
+
+
+      const preload =
+        new Image();
+
+
+      preload.onload =
+        () => {
+
+          vehicleImage.src =
+            src;
+
+          vehicleImage.alt =
+            alt;
+
+          requestAnimationFrame(
+            () => {
+
+              vehicleImage.style.opacity =
+                "1";
+
+            }
+          );
+
+        };
+
+
+      preload.onerror =
+        () => {
+
+          vehicleImage.style.display =
+            "none";
+
+          imagePlaceholder.style.display =
+            "flex";
+
+        };
+
+
+      preload.src =
+        src;
+
+    }
+
+
+
+    function updatePagination() {
+
+      const dots =
+        document.querySelectorAll(
+          ".pagination-dot"
+        );
+
+      dots.forEach(
+        (dot, index) => {
+
+          dot.classList.toggle(
+            "active",
+            index === currentVehicleIndex
+          );
+
+        }
+      );
+
+    }
+
+
+
+    previousVehicle.addEventListener(
+      "click",
+      () => {
+
+        if (
+          resultsAreActive
+        ) {
+          return;
+        }
+
+
+        currentVehicleIndex--;
+
+        if (
+          currentVehicleIndex < 0
+        ) {
+
+          currentVehicleIndex =
+            vehicles.length - 1;
+
+        }
+
+
+        showVehicle();
+
+      }
+    );
+
+
+
+    nextVehicle.addEventListener(
+      "click",
+      () => {
+
+        if (
+          resultsAreActive
+        ) {
+          return;
+        }
+
+
+        currentVehicleIndex =
+          (
+            currentVehicleIndex + 1
+          ) % vehicles.length;
+
+
+        showVehicle();
+
+      }
+    );
+
+
+
+    document.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          resultsAreActive
+        ) {
+          return;
+        }
+
+
+        if (
+          event.key ===
+          "ArrowLeft"
+        ) {
+
+          previousVehicle.click();
+
+        }
+
+
+        if (
+          event.key ===
+          "ArrowRight"
+        ) {
+
+          nextVehicle.click();
+
+        }
+
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          compareButton.click();
+
+        }
+
+      }
+    );
+
+
+
+    compareButton.addEventListener(
+      "click",
+      activateResults
+    );
+
+
+
+    function activateResults() {
+
+      const distance =
+        Number(
+          distanceInput.value
+        );
+
+
+      if (
+        !distance ||
+        distance <= 0
+      ) {
+
+        distanceInput.focus();
+
+        return;
+
+      }
+
+
+      resultsAreActive =
+        true;
+
+
+      const vehicle =
+        vehicles[currentVehicleIndex];
+
+
+      document.body.classList.add(
+        "results-active"
+      );
+
+
+      distanceArea.classList.add(
+        "hidden"
+      );
+
+
+      setTimeout(
+        () => {
+
+          showImage(
+            vehicle.axon,
+            vehicle.name +
+            " axonometric view"
+          );
+
+        },
+        260
+      );
+
+
+      updateHeroResult(
+        vehicle,
+        distance
+      );
+
+
+      renderVehicleResults(
+        distance
+      );
+
+
+      setTimeout(
+        () => {
+
+          document.body.classList.remove(
+            "selection-mode"
+          );
+
+        },
+        950
+      );
+
+    }
+
+
+
+    function formatTime(minutes) {
+
+      if (
+        minutes < 60
+      ) {
+
+        return (
+          minutes +
+          " min"
+        );
+
+      }
+
+
+      const hours =
+        Math.floor(
+          minutes / 60
+        );
+
+
+      const remainingMinutes =
+        minutes % 60;
+
+
+      if (
+        remainingMinutes === 0
+      ) {
+
+        return (
+          hours +
+          (
+            hours === 1
+              ? " hr"
+              : " hrs"
+          )
+        );
+
+      }
+
+
+      return (
+        hours +
+        (
+          hours === 1
+            ? " hr "
+            : " hrs "
+        ) +
+        remainingMinutes +
+        " min"
+      );
+
+    }
+
+
+
+    function calculateVehicle(
+      vehicle,
+      distance
+    ) {
+
+      const travelHours =
+        distance /
+        vehicle.speed;
+
+
+      const travelMinutes =
+        Math.max(
+          1,
+          Math.round(
+            travelHours *
+            60
+          )
+        );
+
+
+      if (
+        vehicle.isWalking
+      ) {
+
+        return {
+
+          batteryPercent: null,
+
+          remaining: null,
+
+          travelMinutes,
+
+          status:
+            "Always within range"
+
+        };
+
+      }
+
+
+      const rawBatteryPercent =
+        (
+          distance /
+          vehicle.range
+        ) * 100;
+
+
+      const batteryPercent =
+        Math.round(
+          rawBatteryPercent
+        );
+
+
+      const remaining =
+        vehicle.range -
+        distance;
+
+
+      let status;
+
+
+      if (
+        batteryPercent <= 75
+      ) {
+
+        status =
+          "Within range";
+
+      }
+
+      else if (
+        batteryPercent <= 100
+      ) {
+
+        status =
+          "Near range limit";
+
+      }
+
+      else {
+
+        status =
+          "Outside estimated range";
+
+      }
+
+
+      return {
+
+        batteryPercent,
+
+        remaining,
+
+        travelMinutes,
+
+        status
+
+      };
+
+    }
+
+
+
+    function updateHeroResult(
+      vehicle,
+      distance
+    ) {
+
+      const result =
+        calculateVehicle(
+          vehicle,
+          distance
+        );
+
+
+      resultName.textContent =
+        vehicle.name;
+
+
+      resultTime.textContent =
+        formatTime(
+          result.travelMinutes
+        ) +
+        " estimated trip";
+
+
+      rangeStatus.textContent =
+        result.status;
+
+
+      if (
+        vehicle.isWalking
+      ) {
+
+        batteryPercentage.textContent =
+          "No battery";
+
+        batteryFill.style.width =
+          "0%";
+
+        rangeRemaining.textContent =
+          "No vehicle range limit.";
+
+        return;
+
+      }
+
+
+      batteryPercentage.textContent =
+        result.batteryPercent +
+        "%";
+
+
+      batteryFill.style.width =
+        Math.min(
+          result.batteryPercent,
+          100
+        ) +
+        "%";
+
+
+      if (
+        result.remaining >= 0
+      ) {
+
+        rangeRemaining.textContent =
+          result.remaining
+            .toFixed(1) +
+          " miles of estimated range remaining.";
+
+      }
+
+      else {
+
+        rangeRemaining.textContent =
+          Math.abs(
+            result.remaining
+          )
+          .toFixed(1) +
+          " miles beyond the estimated range.";
+
+      }
+
+    }
+
+
+
+    function renderVehicleResults(
+      distance
+    ) {
+
+      vehicleResults.innerHTML =
+        "";
+
+
+      vehicles.forEach(
+        (vehicle, index) => {
+
+          if (
+            index ===
+            currentVehicleIndex
+          ) {
+
+            return;
+
+          }
+
+
+          const result =
+            calculateVehicle(
+              vehicle,
+              distance
+            );
+
+
+          const card =
+            document.createElement(
+              "article"
+            );
+
+
+          card.className =
+            "result-card";
+
+
+          let statusClass =
+            "";
+
+
+          if (
+            !vehicle.isWalking
+          ) {
+
+            if (
+              result.batteryPercent > 100
+            ) {
+
+              statusClass =
+                "unavailable";
+
+            }
+
+            else if (
+              result.batteryPercent > 75
+            ) {
+
+              statusClass =
+                "warning";
+
+            }
+
+          }
+
+
+          let remainingText =
+            "";
+
+
+          if (
+            !vehicle.isWalking
+          ) {
+
+            if (
+              result.remaining >= 0
+            ) {
+
+              remainingText =
+                result.remaining
+                  .toFixed(1) +
+                " mi remaining";
+
+            }
+
+            else {
+
+              remainingText =
+                Math.abs(
+                  result.remaining
+                )
+                .toFixed(1) +
+                " mi short";
+
+            }
+
+          }
+
+
+          let dataSection;
+
+
+          if (
+            vehicle.isWalking
+          ) {
+
+            dataSection =
+            `
+              <div class="card-percent">
+                —
+              </div>
+
+              <div class="card-percent-label">
+                no battery
+              </div>
+
+              <div class="card-remaining">
+                No range limit
+              </div>
+            `;
+
+          }
+
+          else {
+
+            dataSection =
+            `
+              <div class="card-percent">
+                ${result.batteryPercent}%
+              </div>
+
+              <div class="card-percent-label">
+                battery used
+              </div>
+
+              <div class="card-remaining">
+                ${remainingText}
+              </div>
+            `;
+
+          }
+
+
+          card.innerHTML =
+          `
+
+            <div
+              class="result-card-image-wrap"
+            >
+
+              <img
+                class="result-card-image"
+                src="${vehicle.axon}"
+                alt="${vehicle.name}"
+                onerror="this.style.display='none'"
+              />
+
+            </div>
+
+
+            <div>
+
+              <h3 class="card-title">
+                ${vehicle.name}
+              </h3>
+
+              <div class="card-meta">
+
+                ${vehicle.type}
+                ·
+                ${formatTime(result.travelMinutes)}
+
+              </div>
+
+
+              <div
+                class="
+                  card-status
+                  ${statusClass}
+                "
+              >
+
+                ${result.status}
+
+              </div>
+
+            </div>
+
+
+            <div class="card-data">
+
+              ${dataSection}
+
+            </div>
+
+          `;
+
+
+          vehicleResults.appendChild(
+            card
+          );
+
+        }
+      );
+
+    }
+
+
+
+    startOverButton.addEventListener(
+      "click",
+      () => {
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+
+
+        setTimeout(
+          resetInterface,
+          550
+        );
+
+      }
+    );
+
+
+
+    function resetInterface() {
+
+      resultsAreActive =
+        false;
+
+
+      document.body.classList.add(
+        "selection-mode"
+      );
+
+
+      document.body.classList.remove(
+        "results-active"
+      );
+
+
+      distanceArea.classList.remove(
+        "hidden"
+      );
+
+
+      batteryFill.style.width =
+        "0%";
+
+
+      const vehicle =
+        vehicles[currentVehicleIndex];
+
+
+      setTimeout(
+        () => {
+
+          showImage(
+            vehicle.profile,
+            vehicle.name
+          );
+
+        },
+        200
+      );
+
+    }
+
+  </script>
+
+</body>
+</html>
